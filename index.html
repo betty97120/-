@@ -2,6 +2,61 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>釜山自由行 Vibe Trip</title>
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="釜山行程">
+
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0077b6">
+
+    <style>
+        :root {
+            /* 基礎配色 */
+            --glass: rgba(255, 255, 255, 0.2);
+            --glass-heavy: rgba(255, 255, 255, 0.85);
+            --accent: #0077b6;
+            --text: #1d3557;
+            --secondary: #457b9d;
+            --highlight: #f9a825;
+            --vbp-color: #ef4444;
+            
+            /* 功能配色 */
+            --taxi-yellow: #ffc107;
+        }
+
+        /* 額外優化：防止全螢幕時頂部內容被手機瀏海遮住 */
+        body {
+            padding-top: env(safe-area-inset-top);
+            margin: 0;
+            -webkit-tap-highlight-color: transparent; /* 移除手機點擊時的藍框 */
+        }
+    </style>
+    ```
+
+---
+
+### 操作提示：如何變身 APP
+
+1.  **上傳更新：** 到 GitHub 點擊 `index.html` 的筆頭圖示，把上面的代碼貼在最前面，存檔 (Commit)。
+2.  **手機端操作：**
+    * **iPhone：** 用 Safari 打開網址 → 點擊「分享」→ 選擇 **「加入主畫面」**。
+    * **Android：** 用 Chrome 打開網址 → 點擊右上角三點 → 選擇 **「安裝應用程式」**。
+3.  **大功告成：** 點擊手機桌面那個新的圖示打開，你會發現它像真正的 APP 一樣，沒有瀏覽器的網址列了！
+
+
+
+---
+
+### 💡 小建議
+如果你之後想讓這個 APP 更有質感，我們可以幫它設定一個**專屬圖示 (Icon)**，這樣它出現在手機桌面時，就不會只是一個預設的網頁縮圖，而是一個好看的 Logo。
+
+**要不要試試看現在更新到 GitHub，然後用手機「加入主畫面」看看效果？**<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>釜山自由行 Vibe Trip</title>
     <style>
@@ -1052,4 +1107,5 @@
     document.getElementById('weather-status').innerText = weatherAdvice;
 </script>
 </body>
+
 </html>
