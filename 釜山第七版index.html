@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>釜山自由行 Vibe Trip</title>
+    <style>
+        :root {
+            --glass: rgba(255, 255, 255, 0.2);
+            --glass-heavy: rgba(255, 255, 255, 0.85);
+            --accent: #0077b6;
+            --text: #1d3557;
+            --secondary: #457b9d;
+            --highlight: #f9a825;
+            --vbp-color: #ef4444;
+            --taxi-yellow: #ffc107;
+            --taxi-text: #523e02;
+            --memo-pink: #f8bbd0;
+            --memo-text: #880e4f;
+            --walk-green: #e8f5e9;
+            --walk-text: #2e7d32;
+            --walk-border: #c8e6c9;
+            --transit-blue: #e3f2fd;
+            --transit-text: #0277bd;
+            --transit-border: #b3e5fc;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', "Microsoft JhengHei", sans-serif;
+            background: url('https://images.unsplash.com/photo-1590664095641-7fa05f689813?auto=format&fit=crop&w=1920&q=80') no-repeat center center fixed;
+            background-color: #1d3557;
+            background-size: cover;
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            padding: 50px 20px 30px;
+            color: white;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        header h1 {
+            font-size: 3rem;
+            letter-spacing: 6px;
+            margin: 0;
+            word-break: keep-all;
+        }
+
+        nav {
+            display: flex;
+            justify-content: flex-start;
+            gap: 8px;
+            padding: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        nav::-webkit-scrollbar { display: none; }
+
+        .tab-btn {
+            background: var(--glass);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        .tab-btn.active {
+            background: white;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 0 20px 100px;
+        }
+
+        .page {
+            display: none;
+            background: var(--glass-heavy);
+            backdrop-filter: blur(15px);
+            padding: 30px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+            animation: fadeIn 0.5s ease;
+        }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        @media (max-width: 600px) { .info-grid { grid-template-columns: 1fr; } }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.6);
+            padding: 18px;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.5);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .info-card h4 { margin: 0 0 8px 0; color: var(--accent); font-size: 1rem; }
+
+        #weather-status {
+            font-size: 0.85rem;
+            color: #444;
+            margin-top: 10px;
+            padding: 12px;
+            background: white;
+            border-radius: 10px;
+            border-left: 4px solid var(--highlight);
+        }
+
+        .time-display, .exchange-display, .vbp-display {
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            background: rgba(255,255,255,0.5);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .time-row, .exchange-row { display: flex; justify-content: space-between; margin-bottom: 2px; }
+
+        .vbp-timer { font-size: 1.2rem; font-weight: bold; color: var(--vbp-color); text-align: center; margin: 5px 0; }
+        .btn-vbp { background: var(--vbp-color); color: white; border: none; padding: 8px; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; margin-bottom: 5px; }
+        .btn-vbp.paused { background: #666; }
+        .btn-reset { background: #eee; color: #333; border: 1px solid #ccc; padding: 4px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; width: 100%; }
+
+        .calc-input { width: 100%; box-sizing: border-box; padding: 8px; margin-top: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 0.85rem; outline: none; }
+
+        .check-list { list-style: none; padding: 0; margin: 15px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        @media (max-width: 600px) { .check-list { grid-template-columns: 1fr; } }
+        .check-list li { font-size: 0.95rem; display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: rgba(255,255,255,0.5); border-radius: 10px; }
+        .check-list li:has(input:checked) { background: rgba(0, 119, 182, 0.1); color: #888; text-decoration: line-through; }
+        .check-list input[type="checkbox"] { transform: scale(1.3); cursor: pointer; }
+
+        .memo-box { background: #fff9e6; padding: 15px; border-radius: 12px; font-size: 0.85rem; margin-bottom: 20px; border: 1px solid #ffe58f; }
+
+        .app-list { list-style: none; padding: 0; }
+        .app-list li { display: flex; align-items: center; padding: 12px; margin-bottom: 8px; background: rgba(255,255,255,0.7); border-radius: 12px; border: 1px solid rgba(255,255,255,0.4); }
+        .app-list .emoji { font-size: 1.5rem; margin-right: 15px; width: 30px; text-align: center; }
+        .app-list .name { font-weight: bold; display: block; color: var(--accent); }
+        .app-list .desc { font-size: 0.8rem; color: #555; }
+
+        h2 { color: var(--accent); margin-top: 0; }
+        h3 { border-left: 5px solid var(--highlight); padding-left: 10px; margin-top: 30px; color: var(--text); font-size: 1.2rem; }
+
+        .timeline { position: relative; padding-left: 20px; margin-top: 20px; border-left: 2px dashed rgba(255, 255, 255, 0.4); }
+        .timeline-item { margin-bottom: 20px; position: relative; }
+        .timeline-dot { position: absolute; left: -27px; top: 15px; width: 12px; height: 12px; background: var(--highlight); border-radius: 50%; border: 3px solid rgba(255,255,255,0.8); box-shadow: 0 0 10px var(--highlight); }
+
+        .schedule-card { background: rgba(255, 255, 255, 0.7); border-radius: 16px; padding: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid rgba(255,255,255,0.6); }
+        .schedule-time { display: inline-block; background: var(--accent); color: white; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; margin-bottom: 8px; }
+        .schedule-title { font-size: 1.1rem; font-weight: bold; color: var(--text); margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
+        .schedule-desc { font-size: 0.9rem; color: #444; line-height: 1.4; }
+
+        .transport-interval { position: relative; margin-left: 0; margin-top: -10px; margin-bottom: 10px; z-index: 2; padding-left: 20px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .transport-pill { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 25px; font-size: 0.8rem; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.08); position: relative; line-height: 1.3; text-decoration: none; cursor: pointer; border: none; font-family: inherit; }
+
+        .transport-pill.transit-btn { background: var(--transit-blue); color: var(--transit-text); border: 1px solid var(--transit-border); }
+        .transport-pill.transit-btn:hover { background: #bbdefb; transform: translateY(-2px); }
+        .transport-pill.transit-btn::after { content: '🗺️'; font-size: 0.8rem; }
+
+        .transport-pill.taxi-btn { background: var(--taxi-yellow); color: var(--taxi-text); border: 1px solid #e0a800; }
+        .transport-pill.taxi-btn:hover { background: #ffca2c; transform: translateY(-2px); }
+        .transport-pill.taxi-btn::after { content: '👆'; font-size: 0.9rem; }
+
+        .transport-pill.walking-btn { background: var(--walk-green); color: var(--walk-text); border: 1px solid var(--walk-border); }
+        .transport-pill.walking-btn:hover { background: #c8e6c9; transform: translateY(-2px); }
+        .transport-pill.walking-btn::after { content: '🚶'; font-size: 0.8rem; }
+
+        .btn-memo { background: var(--memo-pink); color: var(--memo-text); border: none; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; cursor: pointer; margin-top: 8px; display: inline-flex; align-items: center; gap: 5px; transition: transform 0.2s; }
+        .btn-memo:hover { background: #f48fb1; transform: translateY(-2px); }
+
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
+        .modal-overlay.active { display: flex; }
+        .modal-box { background: white; padding: 25px; border-radius: 20px; max-width: 500px; width: 100%; position: relative; max-height: 80vh; overflow-y: auto; }
+        .modal-close-btn { position: absolute; top: 15px; right: 15px; background: #f0f0f0; border: none; font-size: 1.2rem; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; }
+        .modal-title { margin-top: 0; color: var(--text); display: flex; align-items: center; gap: 10px; }
+
+        .taxi-info-block { background: #fff9e6; border: 2px solid var(--taxi-yellow); border-radius: 12px; padding: 15px; margin-bottom: 15px; }
+        .taxi-addr-kr { font-size: 1.2rem; font-weight: bold; color: #000; margin-bottom: 5px; }
+        .taxi-phrase-kr { font-size: 1.1rem; font-weight: bold; color: var(--accent); }
+
+        .floor-list { list-style: none; padding: 0; }
+        .floor-list li { display: flex; align-items: flex-start; padding: 12px 0; border-bottom: 1px dashed #eee; font-size: 0.95rem; }
+        .floor-badge { background: var(--text); color: white; font-size: 0.75rem; padding: 2px 8px; border-radius: 6px; margin-right: 12px; font-weight: bold; min-width: 30px; text-align: center; }
+        .floor-badge.highlight { background: #ef4444; }
+        .note-highlight { color: #d32f2f; font-size: 0.85rem; display: block; margin-top: 4px; font-weight: bold; }
+        
+        .paid-record { margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 10px; }
+        .paid-label { font-size: 0.8rem; color: #666; }
+        .live-twd { font-size: 0.85rem; color: var(--secondary); margin-left: 8px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>釜山自由行</h1>
+    <p>4/22 - 4/26 Vibe Journey</p>
+</header>
+
+<nav id="navBar">
+    <button class="tab-btn active" onclick="showPage('intro', this)">行前須知</button>
+    <button class="tab-btn" onclick="showPage('prep', this)">行前準備</button>
+    <button class="tab-btn" onclick="showPage('day1', this)">4/22(二)</button>
+    <button class="tab-btn" onclick="showPage('day2', this)">4/23(三)</button>
+    <button class="tab-btn" onclick="showPage('day3', this)">4/24(五)</button>
+    <button class="tab-btn" onclick="showPage('day4', this)">4/25(六)</button>
+    <button class="tab-btn" onclick="showPage('day5', this)">4/26(日)</button>
+</nav>
+
+<div class="container">
+    <div id="intro" class="page active">
+        <h2>旅行案內</h2>
+        <div class="info-grid">
+            <div class="info-card">
+                <h4>🌡️ 天氣分析</h4>
+                <div id="weather-status">讀取建議中...</div>
+            </div>
+            <div class="info-card">
+                <h4>⏰ 當地時差</h4>
+                <div class="time-display">
+                    <div class="time-row"><span>🇹🇼 台灣</span><span id="tw-time">--:--:--</span></div>
+                    <div class="time-row"><span>🇰🇷 韓國</span><span id="kr-time">--:--:--</span></div>
+                </div>
+            </div>
+            <div class="info-card">
+                <h4>🎟️ Visit Busan Pass (48H)</h4>
+                <div class="vbp-display">
+                    <div id="vbp-status-text" style="font-size: 0.75rem; color: #666; text-align: center;">尚未啟用</div>
+                    <div id="vbp-timer" class="vbp-timer">48:00:00</div>
+                    <button id="vbp-start-btn" class="btn-vbp vbp-global-btn" onclick="toggleVBP()">點擊開始啟用</button>
+                    <button id="vbp-reset-btn" class="btn-reset" onclick="resetVBP()" style="display:none;">重新計算</button>
+                </div>
+            </div>
+            <div class="info-card">
+                <h4>💱 匯率換算</h4>
+                <div class="exchange-display">
+                    <div class="exchange-row"><span>1 TWD ≈</span><span>42.5 KRW</span></div>
+                    <input type="number" id="krw-input" class="calc-input" placeholder="輸入韓元 (KRW)" oninput="convertCurrency()">
+                    <div class="exchange-row" style="margin-top: 8px;">
+                        <span>估計台幣：</span>
+                        <strong id="twd-output">NT$ 0</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="prep" class="page">
+        <h2>行前準備 Check-list</h2>
+        <div class="memo-box">
+            💡 <strong>貼心提醒：</strong> 韓國電壓為 220V 雙圓孔插頭。入境前記得填寫 Q-Code 電子申報。
+        </div>
+        <h3>🚨 絕對必備</h3>
+        <ul class="check-list">
+            <li><input type="checkbox"> 護照 (有效期限 > 6 個月)</li>
+            <li><input type="checkbox"> 韓國電子入境卡 (Q-Code QR碼)</li>
+            <li><input type="checkbox"> 來回機票</li>
+            <li><input type="checkbox"> 住宿憑證 (訂房資訊)</li>
+            <li><input type="checkbox"> 現金 (韓元及台幣備用)</li>
+            <li><input type="checkbox"> 信用卡 (建議兩張高回饋卡)</li>
+            <li><input type="checkbox"> 網路卡 (eSIM/SIM卡)</li>
+            <li><input type="checkbox"> 韓國轉接頭 (雙圓孔)</li>
+        </ul>
+        <h3>🚇 交通、票券相關</h3>
+        <ul class="check-list">
+            <li><input type="checkbox"> Visit Busan Pass</li>
+            <li><input type="checkbox"> 膠囊火車票券 (預約憑證)</li>
+            <li><input type="checkbox"> T-Money 交通卡</li>
+            <li><input type="checkbox"> 🎟️ Ocean Flying 票券</li>
+        </ul>
+        <h3>📱 必備 APP 清單</h3>
+        <ul class="app-list">
+            <li><span class="emoji">🗺️</span><div class="info"><span class="name">NAVER Map</span><span class="desc">韓國地圖導航首選</span></div></li>
+            <li><span class="emoji">🦜</span><div class="info"><span class="name">Papago</span><span class="desc">翻譯/圖片辨識翻譯</span></div></li>
+            <li><span class="emoji">🚕</span><div class="info"><span class="name">Uber (UT)</span><span class="desc">韓國叫計程車用</span></div></li>
+        </ul>
+    </div>
+
+    <div id="day1" class="page">
+        <h2>4/22 (二) 釜山初抵達</h2>
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <span class="schedule-time">07:55 起飛</span>
+                    <div class="schedule-title">🇹🇼 桃園國際機場 (TPE) - 中華航空 CI188</div>
+                    <div class="schedule-desc">班機預計起飛，開啟旅程。</div>
+                    <div class="paid-record">
+                        <span class="paid-label">🎟️ 實付紀錄：</span><br>
+                        <input type="number" class="calc-input" style="width: 140px;" placeholder="輸入實付金額" oninput="liveConvert(this)">
+                        <span class="live-twd"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="transport-interval"><div class="transport-pill">✈️ 飛行時間約 2.5 小時</div></div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <span class="schedule-time">11:25 抵達</span>
+                    <div class="schedule-title">🇰🇷 金海國際機場 (PUS)</div>
+                    <div class="schedule-desc">入境、領取行李並準備移動。</div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <a href="nmap://route/public?dlat=35.1689&dlng=129.1300&dname=新世界百貨" class="transport-pill transit-btn">
+                    🚝 輕軌(沙上轉) ➔ 地鐵 2號線 (約 60 分)
+                </a>
+                <button class="transport-pill taxi-btn" onclick="openTaxiModal('前往新世界百貨', '부산 해운대구 센텀남대로 35', '釜山海雲臺區Centum南大路35', '신세계백화점 센텀시티점으로 가주세요.')">
+                    🚕 計程車 (約 45 分)
+                </button>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <span class="schedule-time">午餐</span>
+                    <div class="schedule-title">🛍️ 新世界百貨 Centum City</div>
+                    <div class="schedule-desc">美食街享用午餐。</div>
+                    <button class="btn-memo" onclick="openNoteModal('新世界百貨 - 樓層攻略', `
+                        <ul class='floor-list'>
+                            <li><span class='floor-badge highlight'>3F</span><div>辦理外國人會員卡，可拿飲品券與折扣</div></li>
+                            <li><span class='floor-badge'>1F</span><div>GENTLE MONSTER、TAMBURINS</div></li>
+                            <li><span class='floor-badge'>B2</span><div>Mardi, emis, MLB <span class='note-highlight'>🧳 KANGOL 旁可寄放行李</span></div></li>
+                        </ul>
+                    `)">📝 查看重點樓層備註</button>
+                    <div class="paid-record">
+                        <span class="paid-label">🎟️ 實付紀錄：</span><br>
+                        <input type="number" class="calc-input" style="width: 140px;" placeholder="輸入實付韓元" oninput="liveConvert(this)">
+                        <span class="live-twd"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <a href="nmap://route/public?dlat=35.1595&dlng=129.1728&dname=尾浦飯店" class="transport-pill transit-btn">
+                    🚇 地鐵 2號線 (約 25 分)
+                </a>
+                <button class="transport-pill taxi-btn" onclick="openTaxiModal('前往尾浦飯店', '부산 해운대구 달맞이길62번길 28', '釜山海雲臺區迎月路62號街28 (Mipo Oceanside Hotel)', '미포 오션사이드 호텔로 가주세요.')">
+                    🚕 計程車 (約 15 分)
+                </button>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-title">🏨 尾浦飯店 (Mipo Oceanside)</div>
+                <div class="schedule-desc">辦理入住，放置行李。</div>
+                <div class="paid-record">
+                    <span class="paid-label">🎟️ 實付紀錄：</span><br>
+                    <input type="number" class="calc-input" style="width: 140px;" placeholder="輸入實付金額" oninput="liveConvert(this)">
+                    <span class="live-twd"></span>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <a href="nmap://route/walk?dlat=35.1612&dlng=129.1622&dname=海雲台市場" class="transport-pill walking-btn">
+                    🚶 步行至海雲台市場 (約 12 分)
+                </a>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <div class="schedule-title">🍢 海雲台市場</div>
+                    <div class="schedule-desc">逛街感受市場氛圍。</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <span class="schedule-time">晚餐</span>
+                    <div class="schedule-title">🥩 味贊王烤肉 / 🥘 嚴勇伯湯飯</div>
+                    <div class="schedule-desc">
+                        1. <strong>味贊王烤肉 (海雲台店)：</strong>釜山必吃厚切五花肉。<br>
+                        2. <strong>嚴勇伯豬肉湯飯 (海雲台店)：</strong>釜山特色美食備案。
+                    </div>
+                    <div class="paid-record">
+                        <span class="paid-label">🎟️ 實付紀錄：</span><br>
+                        <input type="number" class="calc-input" style="width: 140px;" placeholder="輸入實付韓元" oninput="liveConvert(this)">
+                        <span class="live-twd"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <a href="nmap://route/walk?dlat=35.1616&dlng=129.1605&dname=味贊王烤肉" class="transport-pill walking-btn">
+                    🚶 步行至味贊王 (約 5 分)
+                </a>
+                <a href="nmap://route/walk?dlat=35.1633&dlng=129.1619&dname=嚴勇伯豬肉湯飯" class="transport-pill walking-btn">
+                    🚶 步行至嚴勇伯 (約 8 分)
+                </a>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <div class="schedule-title">🌊 海雲台海灘夜遊</div>
+                    <div class="schedule-desc">沙灘夜遊散步。</div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <a href="nmap://route/walk?dlat=35.1595&dlng=129.1728&dname=尾浦飯店" class="transport-pill walking-btn">
+                    🚶 散步返回尾浦飯店 (約 15 分)
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div id="day2" class="page">
+        <h2>4/23 (三) 海岸列車與樂園體驗</h2>
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <span class="schedule-time">起床</span>
+                    <div class="schedule-title">🏨 尾浦飯店 (Mipo Oceanside)</div>
+                    <div class="schedule-desc">準備出發開始今日行程。</div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <a href="nmap://route/walk?dlat=35.1585&dlng=129.1715&dname=自然島鹽麵包" class="transport-pill walking-btn">
+                    🚶 步行至自然島鹽麵包 (約 5 分)
+                </a>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <span class="schedule-time">早餐</span>
+                    <div class="schedule-title">🥐 自然島鹽麵包 (자연도소금빵)</div>
+                    <div class="schedule-desc">飯店出發後享用美味早餐。</div>
+                    <div class="paid-record">
+                        <span class="paid-label">🎟️ 實付紀錄：</span><br>
+                        <input type="number" class="calc-input" style="width: 140px;" placeholder="輸入實付韓元" oninput="liveConvert(this)">
+                        <span class="live-twd"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <a href="nmap://route/walk?dlat=35.1593&dlng=129.1736&dname=尾浦車站" class="transport-pill walking-btn">
+                    🚶 步行至尾浦車站 (約 3 分)
+                </a>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <div class="schedule-title">🚋 海雲台藍線公園 (尾浦站)</div>
+                    <div class="schedule-desc">搭乘天空膠囊列車 (Sky Capsule) 前往青沙浦。</div>
+                    <button class="btn-memo" onclick="openNoteModal('膠囊列車預約提示', '提醒：天空膠囊列車建議於 3 月提前訂票。')">📝 訂票提醒</button>
+                    <div class="paid-record">
+                        <span class="paid-label">🎟️ 實付紀錄：</span><br>
+                        <input type="number" class="calc-input" style="width: 140px;" placeholder="輸入實付韓元" oninput="liveConvert(this)">
+                        <span class="live-twd"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <div class="transport-pill" style="background: #f0f0f0; color: #666; cursor: default; box-shadow: none; border: 1px solid #ddd;">
+                    🚠 天空膠囊：尾浦 ➔ 青沙浦 (車程約 30 分鐘)
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <div class="schedule-title">📸 海雲台藍線公園 (青沙浦) 轉乘點</div>
+                    <div class="schedule-desc">
+                        💡 <strong>說明：</strong>可下車逛逛，著名的《灌籃高手》平交道取景地。此站轉搭海岸列車。<br>
+                        🎟️ <strong>票券：</strong>使用 Visit Busan Pass (48H)。
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <button class="btn-vbp vbp-global-btn" onclick="toggleVBP()" style="max-width: 200px;">點擊開始啟用 VBP</button>
+                    </div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <a href="nmap://route/walk?dlat=35.1610&dlng=129.1925&dname=青沙浦站" class="transport-pill walking-btn">
+                    🚶 步行至青沙浦站 (約 5 分)
+                </a>
+                <div class="transport-pill transit-btn" style="cursor: default;">
+                    🚃 海岸列車：青沙浦 ➔ 松亭站 (車程約 15 分鐘)
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <div class="schedule-title">🚉 海雲台藍線公園 (松亭站)</div>
+                    <div class="schedule-desc">抵達終點松亭站，附近可走走拍照。</div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <a href="nmap://route/walk?dlat=35.1785&dlng=129.2015&dname=31海鮮刀削麵" class="transport-pill walking-btn">
+                    🚶 步行至 31海鮮刀削麵 (約 10 分)
+                </a>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <span class="schedule-time">午餐</span>
+                    <div class="schedule-title">🍜 31海鮮刀削麵 (松亭店)</div>
+                    <div class="schedule-desc">品嚐滿滿的海味大餐。</div>
+                    <div class="paid-record">
+                        <span class="paid-label">🎟️ 實付紀錄：</span><br>
+                        <input type="number" class="calc-input" style="width: 140px;" placeholder="輸入實付韓元" oninput="liveConvert(this)">
+                        <span class="live-twd"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <a href="nmap://route/public?dlat=35.1884&dlng=129.2232&dname=海東龍宮寺" class="transport-pill transit-btn">
+                    🚌 公車 (約 20 分)
+                </a>
+                <button class="transport-pill taxi-btn" onclick="openTaxiModal('前往海東龍宮寺', '부산 기장군 기장읍 용궁길 86', '釜山機張郡機張邑龍宮路86', '해동용궁사로 가주세요.')">
+                    🚕 計程車 (約 10 分)
+                </button>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <div class="schedule-title">⛩️ 海東龍宮寺</div>
+                    <div class="schedule-desc">韓國唯一座落在海邊的寺廟。</div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <a href="nmap://route/walk?dlat=35.1856&dlng=129.2173&dname=SKYLINE LUGE" class="transport-pill walking-btn">
+                    🚶 步行至 SKYLINE LUGE (約 12 分)
+                </a>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <div class="schedule-title">🏎️ SKYLINE LUGE 釜山 (VBP 設施)</div>
+                    <div class="schedule-desc">體驗刺激的斜坡滑車 (VBP 設施)。</div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <a href="nmap://route/walk?dlat=35.1884&dlng=129.2145&dname=樂天世界" class="transport-pill walking-btn">
+                    🚶 步行至樂天世界 (約 10 分)
+                </a>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card" style="border-left: 5px solid #999;">
+                    <div class="schedule-title">🎡 樂天世界 (備案行程) (VBP 設施)</div>
+                    <div class="schedule-desc">💡 若當日時間充裕可安排入園遊玩 (VBP 設施)。</div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <a href="nmap://route/public?dlat=35.1785&dlng=129.2015&dname=松亭站" class="transport-pill transit-btn">
+                    🚌 公車/步行至 松亭站 (約 15 分)
+                </a>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <div class="schedule-title">🚉 海雲台藍線公園 (松亭站)</div>
+                    <div class="schedule-desc">準備搭乘海岸列車返回尾浦。</div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <div class="transport-pill transit-btn" style="cursor: default; background: #e3f2fd; color: #0277bd; border: 1px solid #b3e5fc; box-shadow: none;">
+                    🚃 海岸列車：松亭站 ➔ 尾浦站 (返回海雲台市區) - 車程約 25 分鐘
+                </div>
+            </div>
+            <div class="transport-interval">
+                <a href="nmap://route/public?dlat=35.1689&dlng=129.1300&dname=新世界百貨" class="transport-pill transit-btn">
+                    🚇 地鐵 2號線 (約 25 分)
+                </a>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <div class="schedule-title">🧖 新世界百貨 - Spa Land (VBP 設施)</div>
+                    <div class="schedule-desc">享受釜山最著名的五星級汗蒸幕 (VBP 設施)。</div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <a href="nmap://route/public?dlat=35.1595&dlng=129.1728&dname=極東豬肉湯飯" class="transport-pill transit-btn">
+                    🚇 地鐵 2號線 (約 20 分)
+                </a>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <span class="schedule-time">晚餐</span>
+                    <div class="schedule-title">🥣 極東豬肉湯飯 / 大海鮑魚粥</div>
+                    <div class="schedule-desc">
+                        1. <strong>極東豬肉湯飯：</strong>道地的釜山豬肉湯飯。<br>
+                        2. <strong>備案：</strong>大海鮑魚粥 (바다마루전복죽)
+                    </div>
+                    <div style="margin-top:10px; display:flex; gap:5px;">
+                        <a href="nmap://route/walk?dlat=35.1592&dlng=129.1720&dname=極東豬肉湯飯" class="transport-pill walking-btn">📍 極東導航</a>
+                        <a href="nmap://route/walk?dlat=35.1605&dlng=129.1685&dname=大海鮑魚粥" class="transport-pill walking-btn">📍 鮑魚粥導航</a>
+                    </div>
+                    <div class="paid-record">
+                        <span class="paid-label">🎟️ 實付紀錄：</span><br>
+                        <input type="number" class="calc-input" style="width: 140px;" placeholder="輸入實付韓元" oninput="liveConvert(this)">
+                        <span class="live-twd"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <a href="nmap://route/walk?dlat=35.1595&dlng=129.1728&dname=尾浦飯店" class="transport-pill walking-btn">
+                    🚶 散步返回尾浦飯店 (約 10 分)
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div id="day3" class="page">
+        <h2>4/24 (五) 西面與甘川文化村</h2>
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <div class="schedule-title">🏨 尾浦飯店 (Mipo Oceanside)</div>
+                    <div class="schedule-desc">前往西面。</div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <a href="nmap://route/public?dlat=35.1578&dlng=129.0591&dname=西面站" class="transport-pill transit-btn">
+                    🚇 地鐵 2 號線 (約 45 分)
+                </a>
+                <button class="transport-pill taxi-btn" onclick="openTaxiModal('前往西面站', '부산 부산진구 가야대로 777', '釜山釜山鎮區伽倻大路777', '서면역으로 가주세요.')">
+                    🚕 計程車 (約 35分 | ₩20,000 | NT$470)
+                </button>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <span class="schedule-time">早餐</span>
+                    <div class="schedule-title">🥪 Egg Drop (西面)</div>
+                    <div class="schedule-desc">享用美味吐司。</div>
+                    <div class="paid-record">
+                        <span class="paid-label">🎟️ 實付紀錄：</span><br>
+                        <input type="number" class="calc-input" style="width: 140px;" placeholder="輸入實付韓元" oninput="liveConvert(this)">
+                        <span class="live-twd"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <a href="nmap://route/walk?dlat=35.1531&dlng=129.0596&dname=三井塔樓" class="transport-pill walking-btn">
+                    🚶 步行至三井塔樓 (約 10 分)
+                </a>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <div class="schedule-title">🏃 Running Man 體驗館 (VBP 設施) / 三井塔樓百貨</div>
+                    <div class="schedule-desc">三井塔樓 10 樓室內競技闖關 (VBP 設施)。</div>
+                    <button class="btn-memo" onclick="openNoteModal('西面換錢備註', `
+                        💰 <strong>西面老奶奶換錢所：</strong><br>
+                        地址：釜山廣域市釜山鎮區西面路 56<br>
+                        <a href='nmap://place?lat=35.1555&lng=129.0585&name=老奶奶換錢所' style='color:var(--accent); font-weight:bold;'>📍 Naver Map 導航</a>
+                    `)">📝 查看換錢所地點</button>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card" style="border-left: 5px solid var(--highlight);">
+                    <span class="schedule-time">午餐備案</span>
+                    <div class="schedule-title">🍕 李在模披薩 西面店 (이재모피자)</div>
+                    <div class="schedule-desc">釜山超人氣排隊起司披薩。</div>
+                    <div style="margin-top:8px;">
+                        <a href="nmap://route/walk?dlat=35.1552&dlng=129.0589&dname=李在模披薩" class="transport-pill walking-btn">🚶 步行導航 (約 6分)</a>
+                    </div>
+                    <div class="paid-record">
+                        <span class="paid-label">🎟️ 實付紀錄：</span><br>
+                        <input type="number" class="calc-input" style="width: 140px;" placeholder="輸入實付韓元" oninput="liveConvert(this)">
+                        <span class="live-twd"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <a href="nmap://route/public?dlat=35.0978&dlng=129.0348&dname=南浦站" class="transport-pill transit-btn">
+                    🚇 地鐵 1 號線 (約 20 分)
+                </a>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <span class="schedule-time">午餐</span>
+                    <div class="schedule-title">🍜 1969 刀削麵 (南浦)</div>
+                    <div class="schedule-desc">在地推薦的手工刀削麵。</div>
+                    <div class="paid-record">
+                        <span class="paid-label">🎟️ 實付紀錄：</span><br>
+                        <input type="number" class="calc-input" style="width: 140px;" placeholder="輸入實付韓元" oninput="liveConvert(this)">
+                        <span class="live-twd"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <div class="schedule-title">🛍️ 南浦洞購物 (ABC-MART / BIFF)</div>
+                    <div class="schedule-desc">逛街採買與廣場小吃。</div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <a href="nmap://route/public?dlat=35.0975&dlng=129.0105&dname=甘川文化村" class="transport-pill transit-btn">
+                    🚇 地鐵/公車前往甘川 (約 25 分)
+                </a>
+                <button class="transport-pill taxi-btn" onclick="openTaxiModal('前往甘川文化村', '부산 사하구 감내2로 203', '釜山沙下區甘內2路203', '감천문화마을로 가주세요.')">
+                    🚕 計程車 (約 12分 | ₩7,000 | NT$165)
+                </button>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <div class="schedule-title">🦊 甘川文化村 - 小王子與沙漠狐狸</div>
+                    <div class="schedule-desc">必拍景點。</div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <a href="nmap://route/walk?dlat=35.0972&dlng=129.0112&dname=手翻書門市" class="transport-pill walking-btn">
+                    🚶 步行至手翻書門市 (約 5 分)
+                </a>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <div class="schedule-title">📸 Flipbook Studio (움직いている写真商店) (VBP 設施)</div>
+                    <div class="schedule-desc">製作專屬的手翻書動態相簿體驗 (VBP 設施)。</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <span class="schedule-time">晚餐</span>
+                    <div class="schedule-title">🍴 晚餐行程 (待定)</div>
+                    <div class="schedule-desc">南浦洞 or 札嘎其市場周邊。</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="day4" class="page">
+        <h2>4/25 (六) 影島與松島探險</h2>
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <span class="schedule-time">上午</span>
+                    <div class="schedule-title">🏨 尾浦飯店 (Mipo Oceanside)</div>
+                    <div class="schedule-desc">飯店出發前往影島地區。</div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <button class="transport-pill taxi-btn" onclick="openTaxiModal('前往影島 THRILL ON THE MUG', '부산 영도구 해양로 247', '影島 THRILL ON THE MUG', '스릴온더머그로 가주세요.')">
+                    🚕 計程車 (約 35分 | ₩18,500 | NT$435)
+                </button>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <span class="schedule-time">早餐</span>
+                    <div class="schedule-title">☕ (影島) THRILL ON THE MUG (VBP 優惠)</div>
+                    <div class="schedule-desc">
+                        特色：韓系海景咖啡廳，提供多樣麵包甜點與咖啡。<br>
+                        <span style="color: #666; font-size: 0.85rem;">📍 位於 P.ARK 附近，擁有絕佳海景。</span>
+                    </div>
+                    <button class="btn-memo" onclick="openNoteModal('THRILL ON THE MUG：點餐與優惠說明', `
+                        <div style='line-height:1.6;'>
+                            <strong style='color:var(--vbp-color);'>🎟️ VBP 通行證專屬優惠：</strong><br>
+                            • <b>10:00 - 11:00 入場：</b>食品與飲料享 <b>9 折</b> 優惠。<br>
+                            • <b>其他時段入場：</b>享有 <b>97 折</b> 優惠。<br><br>
+                            <strong>🥐 點餐與取餐流程：</strong><br>
+                            1. 在麵包甜點區旁拿取盤子，自行夾取想要的品項。<br>
+                            2. 帶著盤子前往櫃檯結帳。<br>
+                            3. 飲品直接在櫃檯向店員點餐即可。<br>
+                            4. 結帳後領取「取餐機」，響起後再到櫃檯領取餐點。<br><br>
+                            <a href='https://img.ltn.com.tw/Upload/playing/page/2023/11/17/231117-34796-1-fH0Gv.jpg' target='_blank' style='color:var(--accent); text-decoration:underline;'>📖 參考中文菜單範例 (示意圖)</a>
+                        </div>
+                    `)">📝 查看點餐與優惠說明</button>
+                    <div class="paid-record">
+                        <span class="paid-label">🎟️ 實付紀錄：</span><br>
+                        <input type="number" class="calc-input" style="width: 140px;" placeholder="輸入實付韓元" oninput="liveConvert(this)">
+                        <span class="live-twd"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <button class="transport-pill taxi-btn" onclick="openTaxiModal('前往 Ocean Flying', '부산 영도구 동삼동 1167', 'Ocean Flying 主題公園', '오션플라잉 테마파크로 가주세요.')">
+                    🚕 計程車 (約 8分 | ₩5,000 | NT$118)
+                </button>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <div class="schedule-title">🪂 Ocean Flying 主題公園 (VBP 折扣項目)</div>
+                    <div class="schedule-desc">
+                        體驗高空設施與主題公園景致。<br>
+                        <strong style="color: #d32f2f;">💡 VBP 備註：持有釜山通行證，高空滑索可享 40% 折扣優惠。</strong>
+                    </div>
+                    <div class="paid-record">
+                        <span class="paid-label">🎟️ 實付紀錄：</span><br>
+                        <input type="number" class="calc-input" style="width: 140px;" placeholder="輸入購票金額" oninput="liveConvert(this)">
+                        <span class="live-twd"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <button class="transport-pill taxi-btn" onclick="openTaxiModal('前往 ARTE Museum', '부산 영도구 해양로247번길 29', 'ARTE Museum Busan', '아르떼뮤지엄 부산으로 가주세요.')">
+                    🚕 計程車 (約 5分 | ₩4,500 | NT$106)
+                </button>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <div class="schedule-title">🎨 ARTE Museum (VBP 設施)</div>
+                    <div class="schedule-desc">沉浸式媒體藝術展 (VBP 設施)。</div>
+                    <div class="paid-record">
+                        <span class="paid-label">🎟️ 實付紀錄：</span><br>
+                        <input type="number" class="calc-input" style="width: 140px;" placeholder="輸入購票金額" oninput="liveConvert(this)">
+                        <span class="live-twd"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <button class="transport-pill taxi-btn" onclick="openTaxiModal('前往影島海女村', '부산 영도구 중리남로 2-35', '影島海女文化展示館', '영도 해녀촌으로 가주세요.')">
+                    🚕 計程車 (約 12分 | ₩7,000 | NT$165)
+                </button>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <span class="schedule-time">午餐</span>
+                    <div class="schedule-title">🐚 影島海女村</div>
+                    <div class="schedule-desc">必點內容：海鮮湯麵 + 飯捲 + 海膽。</div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <button class="transport-pill taxi-btn" onclick="openTaxiModal('前往松島覽車', '부산 서구 송도해변로 171', '松島海上纜車(松島灣站)', '송도해상케이블카 송도베이스테이션으로 가주세요.')">
+                    🚕 計程車 (約 20分 | ₩11,000 | NT$259)
+                </button>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <div class="schedule-title">🚠 松島海水纜車 (VBP 設施)</div>
+                    <div class="schedule-desc">預計搭乘：水晶車廂來回 (VBP 設施)。</div>
+                    <div class="paid-record">
+                        <span class="paid-label">🎟️ 實付紀錄：</span><br>
+                        <input type="number" class="calc-input" style="width: 140px;" placeholder="輸入實付韓元" oninput="liveConvert(this)">
+                        <span class="live-twd"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <div class="schedule-title">🌉 松島龍宮雲橋 (VBP 設施)</div>
+                    <div class="schedule-desc">票價：30/人 (約 ₩1,000 | VBP 設施)。</div>
+                    <div class="paid-record">
+                        <span class="paid-label">🎟️ 實付紀錄：</span><br>
+                        <input type="number" class="calc-input" style="width: 140px;" placeholder="輸入實付韓元" oninput="liveConvert(this)">
+                        <span class="live-twd"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <button class="transport-pill taxi-btn" style="background: #333; color: white;" onclick="openTaxiModal('回飯店', '부산 해운代구 달맞이길62번길 28', '返回尾浦飯店(Mipo Oceanside)', '미포 오션사이드 호텔로 가주세요.')">
+                    🏠 返回飯店 (預計 35-40分 | ₩21,000 | NT$494)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="day5" class="page">
+        <h2>4/26 (日) 行程整理與返程</h2>
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card" style="border-left: 5px solid #e74c3c;">
+                    <span class="schedule-time">09:00 - 11:00</span>
+                    <div class="schedule-title">🏨 尾浦飯店：行李整理與退房</div>
+                    <div class="schedule-desc">
+                        • 進行最後行李檢查，確保無遺漏物品。<br>
+                        • <b>11:00 前</b> 於櫃檯完成 Check-out 手續。
+                    </div>
+                </div>
+            </div>
+            <div class="transport-interval">
+                <button class="transport-pill taxi-btn" onclick="openTaxiModal('前往金海機場', '부산 강서구 공항진입로 108', '金海國際機場', '김해공항으로 가주세요.')">
+                    🚕 計程車 (約 50分 | ₩30,000 | NT$706)
+                </button>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <span class="schedule-time">19:50 (KST)</span>
+                    <div class="schedule-title">🇰🇷 金海國際機場 (PUS)</div>
+                    <div class="schedule-desc">
+                        <b>中華航空 CI187</b><br>
+                        辦理登機手續、行李託運與出境檢查。
+                    </div>
+                    <div class="paid-record">
+                        <span class="paid-label">🎟️ 實付紀錄：</span><br>
+                        <input type="number" class="calc-input" style="width: 140px;" placeholder="輸入實付金額" oninput="liveConvert(this)">
+                        <span class="live-twd"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="transport-interval" style="padding: 10px 0;">
+                <div style="border-left: 2px dashed #3498db; margin-left: 10px; padding-left: 20px; color: #3498db; font-weight: bold; font-size: 0.9rem;">
+                    ✈️ 飛行時間：約 2 小時 40 分鐘
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="schedule-card">
+                    <span class="schedule-time">21:30 (CST)</span>
+                    <div class="schedule-title">🇹🇼 桃園國際機場 (TPE)</div>
+                    <div class="schedule-desc">
+                        順利抵達台灣。<br>
+                        領取行李、通關並準備返家。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="taxiModal" class="modal-overlay" onclick="closeTaxiModal(event)">
+    <div class="modal-box">
+        <button class="modal-close-btn" onclick="closeTaxiModal()">×</button>
+        <h3 class="modal-title">🚕 計程車助手 - <span id="modalTitle">目的地</span></h3>
+        <div class="taxi-info-block">
+            <div style="font-size: 0.8rem; color: var(--taxi-text); margin-bottom: 5px;">📍 目的地地址：</div>
+            <div class="taxi-addr-kr" id="modalAddrKR">--</div>
+            <div class="taxi-addr-CN" id="modalAddrCN">--</div>
+        </div>
+        <div class="taxi-phrase-box">
+            <div style="font-size: 0.8rem; color: #666; margin-bottom: 5px;">🗣️ 司機溝通用語：</div>
+            <div class="taxi-phrase-kr" id="modalPhraseKR">--</div>
+        </div>
+    </div>
+</div>
+
+<div id="noteModal" class="modal-overlay" onclick="closeNoteModal(event)">
+    <div class="modal-box">
+        <button class="modal-close-btn" onclick="closeNoteModal()">×</button>
+        <h3 class="modal-title" id="noteModalTitle">備註</h3>
+        <div id="noteModalContent"></div>
+    </div>
+</div>
+
+<script>
+    const currentRate = 42.5;
+    let vbpInterval;
+    let vbpStartTime = null;
+
+    function showPage(pageId, btn) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function updateClocks() {
+        const now = new Date();
+        const tw = now.toLocaleTimeString('zh-TW', { timeZone: 'Asia/Taipei', hour12: false });
+        const kr = now.toLocaleTimeString('zh-TW', { timeZone: 'Asia/Seoul', hour12: false });
+        if(document.getElementById('tw-time')){
+            document.getElementById('tw-time').innerText = tw;
+            document.getElementById('kr-time').innerText = kr;
+        }
+    }
+    setInterval(updateClocks, 1000);
+
+    function convertCurrency() {
+        const krw = document.getElementById('krw-input').value;
+        const twdOutput = document.getElementById('twd-output');
+        if (krw && krw > 0) {
+            twdOutput.innerText = 'NT$ ' + Math.round(krw / currentRate).toLocaleString();
+        } else {
+            twdOutput.innerText = 'NT$ 0';
+        }
+    }
+
+    function liveConvert(inputElement) {
+        const krw = inputElement.value;
+        const displaySpan = inputElement.nextElementSibling;
+        if (krw && krw > 0) {
+            const twd = Math.round(krw / currentRate);
+            displaySpan.innerText = ` ≈ NT$ ${twd.toLocaleString()}`;
+        } else {
+            displaySpan.innerText = '';
+        }
+    }
+
+    function toggleVBP() {
+        const statusText = document.getElementById('vbp-status-text');
+        const timerDisplay = document.getElementById('vbp-timer');
+        const startBtn = document.querySelector('.vbp-global-btn');
+        const resetBtn = document.getElementById('vbp-reset-btn');
+        if (!vbpStartTime) {
+            vbpStartTime = new Date().getTime();
+            statusText.innerText = "啟用中";
+            statusText.style.color = "#ef4444";
+            startBtn.innerText = "暫停顯示";
+            startBtn.classList.add('paused');
+            if(resetBtn) resetBtn.style.display = "block";
+            vbpInterval = setInterval(updateVBPTimer, 1000);
+        } else {
+            clearInterval(vbpInterval);
+            vbpStartTime = null;
+            startBtn.innerText = "點擊開始啟用";
+            startBtn.classList.remove('paused');
+        }
+    }
+
+    function updateVBPTimer() {
+        const now = new Date().getTime();
+        const duration = 48 * 60 * 60 * 1000;
+        const elapsed = now - vbpStartTime;
+        const remaining = duration - elapsed;
+        if (remaining <= 0) {
+            clearInterval(vbpInterval);
+            document.getElementById('vbp-timer').innerText = "00:00:00";
+            document.getElementById('vbp-status-text').innerText = "已到期";
+            return;
+        }
+        const hours = Math.floor(remaining / (1000 * 60 * 60));
+        const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+        document.getElementById('vbp-timer').innerText = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    function resetVBP() {
+        clearInterval(vbpInterval);
+        vbpStartTime = null;
+        document.getElementById('vbp-timer').innerText = "48:00:00";
+        document.getElementById('vbp-status-text').innerText = "尚未啟用";
+        document.getElementById('vbp-status-text').style.color = "#666";
+        const startBtn = document.querySelector('.vbp-global-btn');
+        startBtn.innerText = "點擊開始啟用";
+        startBtn.classList.remove('paused');
+        document.getElementById('vbp-reset-btn').style.display = "none";
+    }
+
+    function openTaxiModal(title, addrKR, addrCN, phraseKR) {
+        document.getElementById('modalTitle').innerText = title;
+        document.getElementById('modalAddrKR').innerText = addrKR;
+        document.getElementById('modalAddrCN').innerText = addrCN;
+        document.getElementById('modalPhraseKR').innerText = phraseKR;
+        document.getElementById('taxiModal').classList.add('active');
+    }
+
+    function closeTaxiModal(e) {
+        if (!e || e.target.id === 'taxiModal' || e.target.className === 'modal-close-btn') {
+            document.getElementById('taxiModal').classList.remove('active');
+        }
+    }
+
+    function openNoteModal(title, content) {
+        document.getElementById('noteModalTitle').innerText = title;
+        document.getElementById('noteModalContent').innerHTML = content;
+        document.getElementById('noteModal').classList.add('active');
+    }
+
+    function closeNoteModal(e) {
+        if (!e || e.target.id === 'noteModal' || e.target.className === 'modal-close-btn') {
+            document.getElementById('noteModal').classList.remove('active');
+        }
+    }
+
+    const weatherAdvice = "🌸 4月釜山：氣溫約 12-20°C。白天涼爽舒適，適合穿薄長袖加外套；海邊風大，晚間溫差顯著。";
+    document.getElementById('weather-status').innerText = weatherAdvice;
+</script>
+</body>
+</html>
